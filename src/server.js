@@ -6,7 +6,9 @@ import helmet from "helmet";
 import rateLimit from "express-rate-limit";
 
 import quoteRoutes from "./routes/quote.routes.js";
+import contactRoutes from "./routes/contact.routes.js";
 import { verifyEmailConnection } from "./services/email.service.js";
+
 
 const app = express();
 
@@ -76,12 +78,8 @@ const quoteLimiter = rateLimit({
 // QUOTE ROUTE
 // ==========================================
 
-app.use(
-  "/api/quote",
-  quoteLimiter,
-  quoteRoutes
-);
-
+app.use("/api/quote", quoteLimiter, quoteRoutes);
+app.use("/api/contact", quoteLimiter, contactRoutes);
 // ==========================================
 // 404
 // ==========================================

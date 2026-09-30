@@ -181,3 +181,117 @@ This request was submitted through FlightsDealNow.
 export const verifyEmailConnection = async () => {
   return transporter.verify();
 };
+
+
+export const sendContactEmail = async ({
+  name,
+  email,
+  phone,
+  message,
+}) => {
+  const mailOptions = {
+    from: process.env.MAIL_FROM,
+    to: process.env.QUOTE_TO,
+    cc: process.env.QUOTE_CC || undefined,
+    replyTo: email,
+
+    subject: `New Contact Request - ${name}`,
+
+    text: `
+New Contact Request
+
+CUSTOMER DETAILS
+----------------
+Name: ${name}
+Email: ${email}
+Phone: ${phone}
+
+MESSAGE
+-------
+${message}
+
+This message was submitted through FlightDealsNow.
+`,
+
+    html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>New Contact Request</title>
+</head>
+
+<body style="margin:0;padding:0;background:#f5f7fb;font-family:Arial,sans-serif;">
+
+  <div style="max-width:680px;margin:40px auto;background:#ffffff;border-radius:18px;overflow:hidden;box-shadow:0 10px 35px rgba(0,0,0,.08);">
+
+    <div style="background:#071a33;padding:28px 32px;color:#ffffff;">
+      <h1 style="margin:0;font-size:24px;">
+        New Contact Request
+      </h1>
+
+      <p style="margin:8px 0 0;color:#aeefff;font-size:14px;">
+        FlightDealsNow.com
+      </p>
+    </div>
+
+    <div style="padding:32px;">
+
+      <h2 style="margin:0 0 18px;color:#071a33;font-size:18px;">
+        Customer Details
+      </h2>
+
+      <table style="width:100%;border-collapse:collapse;">
+        <tr>
+          <td style="padding:10px 0;color:#64748b;font-weight:bold;width:120px;">
+            Name
+          </td>
+          <td style="padding:10px 0;color:#111827;">
+            ${name}
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:10px 0;color:#64748b;font-weight:bold;">
+            Email
+          </td>
+          <td style="padding:10px 0;color:#111827;">
+            ${email}
+          </td>
+        </tr>
+
+        <tr>
+          <td style="padding:10px 0;color:#64748b;font-weight:bold;">
+            Phone
+          </td>
+          <td style="padding:10px 0;color:#111827;">
+            ${phone}
+          </td>
+        </tr>
+      </table>
+
+      <div style="margin-top:28px;padding:20px;background:#f8fafc;border-radius:14px;">
+        <p style="margin:0 0 8px;color:#64748b;font-size:12px;font-weight:bold;text-transform:uppercase;">
+          Message
+        </p>
+
+        <p style="margin:0;color:#1e293b;font-size:15px;line-height:1.7;white-space:pre-line;">
+          ${message}
+        </p>
+      </div>
+
+      <p style="margin:28px 0 0;color:#94a3b8;font-size:12px;">
+        This contact request was submitted through FlightDealsNow.com.
+      </p>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
+`,
+  };
+
+  return transporter.sendMail(mailOptions);
+};
