@@ -112,8 +112,6 @@ const startServer = async () => {
   try {
     await verifyEmailConnection();
 
-    console.log("SMTP connection verified");
-
     app.listen(PORT, () => {
       console.log(
         `FlightsDealNow API running on port ${PORT}`

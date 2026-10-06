@@ -1,16 +1,10 @@
-import nodemailer from "nodemailer";
+import sgMail from "@sendgrid/mail";
 
-const transporter = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT || 587),
-
-  secure: process.env.SMTP_SECURE === "true",
-
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASSWORD,
-  },
-});
+if (!process.env.SENDGRID_API_KEY) {
+  console.error("SENDGRID_API_KEY is missing in environment variables.");
+} else {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+}
 
 // ==========================================
 // SEND QUOTE EMAIL
@@ -32,14 +26,11 @@ export const sendQuoteEmail = async (data) => {
 
   const mailOptions = {
     from: process.env.MAIL_FROM,
+  to: process.env.QUOTE_TO,
+  cc: process.env.QUOTE_CC || undefined,
+  replyTo: email,
 
-    to: process.env.QUOTE_TO,
-
-    cc: process.env.QUOTE_CC || undefined,
-
-    replyTo: email,
-
-    subject: `New Flight Quote Request - ${from} to ${to}`,
+  subject: `New Flight Quote Request - ${from} to ${to}`,
 
     text: `
 New Flight Quote Request
@@ -60,7 +51,7 @@ Return: ${returnDate || "Not applicable"}
 Travelers: ${travelers}
 Cabin: ${cabin}
 
-This request was submitted through FlightsDealNow.
+This request was submitted through FlightDealsNow.
 `,
 
     html: `
@@ -84,7 +75,7 @@ This request was submitted through FlightsDealNow.
             margin: 0;
             color: #67e8f9;
           ">
-            FlightsDealNow
+            FlightDealsNow
           </h1>
 
           <p style="
@@ -162,7 +153,7 @@ This request was submitted through FlightsDealNow.
 
           <p>
             This request was submitted through
-            <strong>FlightsDealNow</strong>.
+            <strong>FlightDealsNow</strong>.
           </p>
 
         </div>
@@ -171,17 +162,40 @@ This request was submitted through FlightsDealNow.
     `,
   };
 
-  return transporter.sendMail(mailOptions);
+  const [response] = await sgMail.send(mailOptions);
+
+  console.log(
+    `Quote email sent successfully. Status: ${response.statusCode}`
+  );
+
+  return response;
 };
 
 // ==========================================
-// VERIFY SMTP
+// VERIFY SENDGRID CONNECTION
 // ==========================================
 
 export const verifyEmailConnection = async () => {
-  return transporter.verify();
+  if (!process.env.SENDGRID_API_KEY) {
+    throw new Error("SENDGRID_API_KEY is missing.");
+  }
+
+  if (!process.env.MAIL_FROM) {
+    throw new Error("MAIL_FROM is missing.");
+  }
+
+  if (!process.env.QUOTE_TO) {
+    throw new Error("QUOTE_TO is missing.");
+  }
+
+  console.log("SendGrid Web API configuration verified.");
+
+  return true;
 };
 
+// ==========================================
+// SEND CONTACT EMAIL
+// ==========================================
 
 export const sendContactEmail = async ({
   name,
@@ -210,7 +224,7 @@ MESSAGE
 -------
 ${message}
 
-This message was submitted through FlightDealsNow.
+This message was submitted through FlightDealsNow.com.
 `,
 
     html: `
@@ -242,10 +256,12 @@ This message was submitted through FlightDealsNow.
       </h2>
 
       <table style="width:100%;border-collapse:collapse;">
+
         <tr>
           <td style="padding:10px 0;color:#64748b;font-weight:bold;width:120px;">
             Name
           </td>
+
           <td style="padding:10px 0;color:#111827;">
             ${name}
           </td>
@@ -255,6 +271,7 @@ This message was submitted through FlightDealsNow.
           <td style="padding:10px 0;color:#64748b;font-weight:bold;">
             Email
           </td>
+
           <td style="padding:10px 0;color:#111827;">
             ${email}
           </td>
@@ -264,20 +281,36 @@ This message was submitted through FlightDealsNow.
           <td style="padding:10px 0;color:#64748b;font-weight:bold;">
             Phone
           </td>
+
           <td style="padding:10px 0;color:#111827;">
             ${phone}
           </td>
         </tr>
+
       </table>
 
       <div style="margin-top:28px;padding:20px;background:#f8fafc;border-radius:14px;">
-        <p style="margin:0 0 8px;color:#64748b;font-size:12px;font-weight:bold;text-transform:uppercase;">
+
+        <p style="
+          margin:0 0 8px;
+          color:#64748b;
+          font-size:12px;
+          font-weight:bold;
+          text-transform:uppercase;
+        ">
           Message
         </p>
 
-        <p style="margin:0;color:#1e293b;font-size:15px;line-height:1.7;white-space:pre-line;">
+        <p style="
+          margin:0;
+          color:#1e293b;
+          font-size:15px;
+          line-height:1.7;
+          white-space:pre-line;
+        ">
           ${message}
         </p>
+
       </div>
 
       <p style="margin:28px 0 0;color:#94a3b8;font-size:12px;">
@@ -293,5 +326,11 @@ This message was submitted through FlightDealsNow.
 `,
   };
 
-  return transporter.sendMail(mailOptions);
+  const [response] = await sgMail.send(mailOptions);
+
+  console.log(
+    `Contact email sent successfully. Status: ${response.statusCode}`
+  );
+
+  return response;
 };
