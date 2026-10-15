@@ -7,6 +7,16 @@ if (!process.env.SENDGRID_API_KEY) {
 }
 
 // ==========================================
+// CC EMAIL RECIPIENTS
+// ==========================================
+
+const getQuoteCC = () =>
+  (process.env.QUOTE_CC || "")
+    .split(",")
+    .map((email) => email.trim())
+    .filter(Boolean);
+
+// ==========================================
 // SEND QUOTE EMAIL
 // ==========================================
 
@@ -26,11 +36,11 @@ export const sendQuoteEmail = async (data) => {
 
   const mailOptions = {
     from: process.env.MAIL_FROM,
-  to: process.env.QUOTE_TO,
-  cc: process.env.QUOTE_CC || undefined,
-  replyTo: email,
+    to: process.env.QUOTE_TO,
+    cc: getQuoteCC(),
+    replyTo: email,
 
-  subject: `New Flight Quote Request - ${from} to ${to}`,
+    subject: `New Flight Quote Request - ${from} to ${to}`,
 
     text: `
 New Flight Quote Request
@@ -206,7 +216,7 @@ export const sendContactEmail = async ({
   const mailOptions = {
     from: process.env.MAIL_FROM,
     to: process.env.QUOTE_TO,
-    cc: process.env.QUOTE_CC || undefined,
+    cc: getQuoteCC(),
     replyTo: email,
 
     subject: `New Contact Request - ${name}`,
